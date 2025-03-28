@@ -6,6 +6,7 @@ import plotly.express as px
 from pydantic_ai import Agent
 from pydantic_ai.models.groq import GroqModel
 from io import StringIO, BytesIO
+import os
 
 # Set page configuration
 st.set_page_config(
@@ -846,7 +847,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Initialize AI agent
-model = GroqModel('llama-3.3-70b-versatile', api_key='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')
+groq_api_key = os.environ.get('GROQ_API_KEY', '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')
+model = GroqModel('llama-3.3-70b-versatile', api_key=groq_api_key)
 agent = Agent(model)
 
 # Session state initialization
@@ -1584,5 +1586,10 @@ with tab4:
         <p>Built with <i class="fas fa-heart" style="color: #FF4081;"></i> using Streamlit and LLM Technology</p>
     </div>
     """, unsafe_allow_html=True) 
+
+if __name__ == "__main__":
+    # This is a no-op for Streamlit as it handles its own server
+    # But it's a good practice to include for local development and other frameworks
+    pass
 
 
