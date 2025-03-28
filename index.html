@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SynthGen AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00bf8f;
+            --primary-light: #33cf9e;
+            --primary-dark: #00a67a;
+            --secondary: #6c757d;
+            --success: #28a745;
+            --info: #17a2b8;
+            --warning: #ffc107;
+            --danger: #dc3545;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .navbar {
+            background: linear-gradient(120deg, var(--primary), var(--primary-dark));
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1rem;
+        }
+        
+        .navbar-brand {
+            color: white !important;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, #73C8A9, #0b8793);
+            padding: 5rem 0;
+            color: white;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .hero p {
+            font-size: 1.3rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            font-weight: 600;
+            padding: 0.6rem 2rem;
+            border-radius: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+        
+        .card {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+        
+        .card-header {
+            background: linear-gradient(120deg, var(--info), #1395a8);
+            color: white;
+            font-weight: 600;
+            padding: 1.2rem;
+            font-size: 1.3rem;
+        }
+        
+        .card-body {
+            padding: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+        
+        .section-title {
+            margin-bottom: 3rem;
+            text-align: center;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--info));
+            border-radius: 2px;
+        }
+        
+        .footer {
+            background: #343a40;
+            color: white;
+            padding: 3rem 0;
+            margin-top: 4rem;
+        }
+        
+        .footer a {
+            color: #adb5bd;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer a:hover {
+            color: white;
+        }
+        
+        .github-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #24292e;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .github-button:hover {
+            background: #000;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .setup-steps {
+            padding-left: 1rem;
+        }
+        
+        .setup-steps li {
+            margin-bottom: 1rem;
+            position: relative;
+            padding-left: 2rem;
+        }
+        
+        .setup-steps li:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 12px;
+            height: 12px;
+            background-color: var(--primary);
+            border-radius: 50%;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-dna me-2"></i>
+                SynthGen AI
+            </a>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="container">
+            <h1>SynthGen AI</h1>
+            <p>Generate high-quality synthetic data that preserves statistical properties while ensuring privacy.</p>
+            <a href="https://github.com/Yasir-Khan-7/SynthGen" class="btn btn-light btn-lg github-button">
+                <i class="fab fa-github"></i> View on GitHub
+            </a>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Features Section -->
+        <h2 class="section-title">Key Features</h2>
+        
+        <div class="row mb-5">
+            <div class="col-lg-4 mb-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h4>Privacy Preserving</h4>
+                        <p>Generate synthetic data without exposing sensitive information from your original dataset.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 mb-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <div class="feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h4>AI-Powered</h4>
+                        <p>Leverages state-of-the-art LLMs to understand and replicate complex data patterns.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 mb-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h4>Statistically Valid</h4>
+                        <p>Maintains distributions and relationships present in your original data.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Run Locally Section -->
+        <div class="row mb-5">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-laptop-code me-2"></i> Run SynthGen AI Locally
+                    </div>
+                    <div class="card-body">
+                        <p>SynthGen AI is a Streamlit application that requires Python to run. Follow these steps to run it on your local machine:</p>
+                        
+                        <ol class="setup-steps">
+                            <li>Clone the repository:<br>
+                                <code>git clone https://github.com/Yasir-Khan-7/SynthGen.git</code>
+                            </li>
+                            <li>Navigate to the project directory:<br>
+                                <code>cd SynthGen</code>
+                            </li>
+                            <li>Install the required dependencies:<br>
+                                <code>pip install -r requirements.txt</code>
+                            </li>
+                            <li>Run the Streamlit app:<br>
+                                <code>streamlit run generator.py</code>
+                            </li>
+                        </ol>
+                        
+                        <div class="mt-4">
+                            <a href="https://github.com/Yasir-Khan-7/SynthGen" class="btn btn-primary">
+                                <i class="fab fa-github me-2"></i> Get Started on GitHub
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Screenshots Section -->
+        <h2 class="section-title">App Screenshots</h2>
+        
+        <div class="row mb-5">
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <img src="https://raw.githubusercontent.com/Yasir-Khan-7/SynthGen/main/screenshots/main.png" class="card-img-top" alt="Main Interface" onerror="this.src='https://via.placeholder.com/800x450/0b8793/FFFFFF?text=SynthGen+Main+Interface'">
+                    <div class="card-body text-center">
+                        <h5>Main Interface</h5>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <img src="https://raw.githubusercontent.com/Yasir-Khan-7/SynthGen/main/screenshots/visualization.png" class="card-img-top" alt="Data Visualization" onerror="this.src='https://via.placeholder.com/800x450/73C8A9/FFFFFF?text=Data+Visualization'">
+                    <div class="card-body text-center">
+                        <h5>Data Visualization</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <h4><i class="fas fa-dna me-2"></i> SynthGen AI</h4>
+                    <p>A powerful and flexible synthetic data generation tool designed to create realistic, structured, and privacy-preserving datasets.</p>
+                </div>
+                
+                <div class="col-lg-3">
+                    <h5>Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="https://github.com/Yasir-Khan-7/SynthGen"><i class="fab fa-github me-2"></i> GitHub Repository</a></li>
+                        <li><a href="https://github.com/Yasir-Khan-7/SynthGen/issues"><i class="fas fa-bug me-2"></i> Report Issues</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-3">
+                    <h5>Technologies</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="https://streamlit.io/"><i class="fas fa-stream me-2"></i> Streamlit</a></li>
+                        <li><a href="https://pandas.pydata.org/"><i class="fas fa-table me-2"></i> Pandas</a></li>
+                        <li><a href="https://plotly.com/"><i class="fas fa-chart-bar me-2"></i> Plotly</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <hr class="mt-4 mb-4">
+            
+            <div class="text-center">
+                <p>Built with <i class="fas fa-heart text-danger"></i> using Streamlit and LLM Technology</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
