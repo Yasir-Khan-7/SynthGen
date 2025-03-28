@@ -847,7 +847,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Initialize AI agent
-groq_api_key = os.environ.get('GROQ_API_KEY', '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')
+# API key hardcoded for development only - move to environment variable or secrets in production
+groq_api_key = "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"
 model = GroqModel('llama-3.3-70b-versatile', api_key=groq_api_key)
 agent = Agent(model)
 
