@@ -846,8 +846,8 @@ st.markdown("""
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 """, unsafe_allow_html=True)
 
-# Initialize AI agent
-model = GroqModel('llama-3.3-70b-versatile', api_key='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')
+api_key = os.getenv('GROQ_API_KEY')  # Store it in an environment variable
+model = GroqModel('llama-3.3-70b-versatile', api_key=api_key)
 agent = Agent(model)
 
 # Session state initialization
