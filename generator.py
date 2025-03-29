@@ -5,6 +5,7 @@ import time
 import plotly.express as px
 from pydantic_ai import Agent
 from pydantic_ai.models.groq import GroqModel
+from pydantic_ai.providers.groq import GroqProvider
 from io import StringIO, BytesIO
 import os
 
@@ -847,7 +848,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Initialize AI agent
-model = GroqModel('llama-3.3-70b-versatile', api_key='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')
+model = GroqModel(
+    'llama-3.3-70b-versatile', provider=GroqProvider(api_key='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')
+)
+# model = GroqModel('llama-3.3-70b-versatile', api_key='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')
 agent = Agent(model)
 
 # Session state initialization
