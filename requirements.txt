@@ -4,4 +4,4 @@ plotly
 pydantic-ai
 groq
 openpyxl
-
+instructor
