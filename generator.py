@@ -849,7 +849,7 @@ st.markdown("""
 
 # Initialize AI agent
 model = GroqModel(
-    'llama-3.3-70b-versatile', provider=GroqProvider(api_key='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')
+    'qwen-qwq-32b', provider=GroqProvider(api_key='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')
 )
 # model = GroqModel('llama-3.3-70b-versatile', api_key='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')
 agent = Agent(model)
