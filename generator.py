@@ -8,6 +8,9 @@ from pydantic_ai.models.groq import GroqModel
 from pydantic_ai.providers.groq import GroqProvider
 from io import StringIO, BytesIO
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Set page configuration
 st.set_page_config(
@@ -847,9 +850,10 @@ st.markdown("""
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 """, unsafe_allow_html=True)
 
+groq_api_key = os.getenv("GROQ_API_KEY")
 # Initialize AI agent
 model = GroqModel(
-    'llama-3.3-70b-versatile', provider=GroqProvider(api_key='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')
+    'llama-3.3-70b-versatile', provider=GroqProvider(api_key=groq_api_key)
 )
 # model = GroqModel('llama-3.3-70b-versatile', api_key='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')
 agent = Agent(model)
