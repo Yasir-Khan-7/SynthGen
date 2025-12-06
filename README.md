@@ -30,11 +30,13 @@ streamlit run generator.py
 
 ## Environment Variables
 
-This application requires a Groq API key. You can set it directly in the code or use an environment variable:
+This application requires a Groq API key. For local development, create a `.env` file in the project root:
 
 ```bash
-export GROQ_API_KEY=your_api_key_here
+GROQ_API_KEY=your_api_key_here
 ```
+
+The app will load the `.env` file automatically. In production (e.g., Streamlit Cloud), add `GROQ_API_KEY` as a secret/environment variable instead of committing it to the repo.
 
 ## How to Use
 
@@ -54,9 +56,6 @@ export GROQ_API_KEY=your_api_key_here
 4. Add your Groq API key as a secret
 5. Deploy the app
 
-## License
-
-MIT
 
 ## Acknowledgements
 

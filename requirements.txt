@@ -5,3 +5,4 @@ pydantic-ai
 groq
 openpyxl
 instructor
+python-dotenv
