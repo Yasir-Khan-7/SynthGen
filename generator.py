@@ -138,7 +138,6 @@ st.markdown("""
         font-weight: 600 !important;
         transition: all 0.3s ease !important;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
-        text-transform: uppercase !important;
         letter-spacing: 0.5px !important;
         font-size: 0 !important; /* Hide the original text */
         width: 100% !important;
@@ -269,7 +268,6 @@ st.markdown("""
         font-weight: 600 !important;
         transition: all 0.3s ease !important;
         box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2) !important;
-        text-transform: uppercase !important;
         letter-spacing: 0.5px !important;
         width: 100% !important;
         margin-bottom: 0 !important;
@@ -398,7 +396,6 @@ st.markdown("""
         transition: all 0.3s ease !important;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
         letter-spacing: 0.5px;
-        text-transform: uppercase;
         font-size: 0.95rem !important;
     }
 
