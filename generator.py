@@ -1047,8 +1047,16 @@ with st.sidebar:
 # Initialize session state for tab navigation
 if 'active_tab' not in st.session_state:
     st.session_state.active_tab = 0  # 0=Upload, 1=Results, 2=Visualization, 3=Documentation
+if 'show_results' not in st.session_state:
+    st.session_state.show_results = False
 
 # Main content area with tabs
+# Determine which tab should be active
+if st.session_state.show_results and st.session_state.generated_data is not None:
+    st.session_state.active_tab = 1  # Results tab
+    st.session_state.show_results = False  # Reset flag after using it
+    st.rerun()  # Rerun to show results immediately
+
 tab1, tab2, tab3, tab4 = st.tabs([
     "Upload", 
     "Results", 
@@ -1180,8 +1188,8 @@ with tab2:
             
             if st.session_state.generated_data is not None and len(st.session_state.generated_data) > 0:
                 logger.info(f"✅ Successfully generated synthetic data: {st.session_state.generated_data.shape}")
-                # Navigate to Results tab
-                st.session_state.active_tab = 1  # 1 = Results tab
+                # Set flag to show results tab on next rerun
+                st.session_state.show_results = True
             else:
                 logger.error("❌ Generated data is empty or None")
             
