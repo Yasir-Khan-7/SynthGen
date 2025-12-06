@@ -1044,6 +1044,10 @@ with st.sidebar:
     """)
     st.markdown("Version 1.0.0")
 
+# Initialize session state for tab navigation
+if 'active_tab' not in st.session_state:
+    st.session_state.active_tab = 0  # 0=Upload, 1=Results, 2=Visualization, 3=Documentation
+
 # Main content area with tabs
 tab1, tab2, tab3, tab4 = st.tabs([
     "Upload", 
@@ -1176,6 +1180,8 @@ with tab2:
             
             if st.session_state.generated_data is not None and len(st.session_state.generated_data) > 0:
                 logger.info(f"✅ Successfully generated synthetic data: {st.session_state.generated_data.shape}")
+                # Navigate to Results tab
+                st.session_state.active_tab = 1  # 1 = Results tab
             else:
                 logger.error("❌ Generated data is empty or None")
             
