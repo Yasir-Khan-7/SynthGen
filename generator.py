@@ -1044,27 +1044,44 @@ with st.sidebar:
     """)
     st.markdown("Version 1.0.0")
 
-# Initialize session state for tab navigation
-if 'active_tab' not in st.session_state:
-    st.session_state.active_tab = 0  # 0=Upload, 1=Results, 2=Visualization, 3=Documentation
-if 'show_results' not in st.session_state:
-    st.session_state.show_results = False
+# Initialize session state for view navigation
+if 'current_view' not in st.session_state:
+    st.session_state.current_view = "upload"  # upload, results, visualization, documentation
 
-# Main content area with tabs
-# Determine which tab should be active
-if st.session_state.show_results and st.session_state.generated_data is not None:
-    st.session_state.active_tab = 1  # Results tab
-    st.session_state.show_results = False  # Reset flag after using it
-    st.rerun()  # Rerun to show results immediately
+# Dynamic view switching
+if st.session_state.generated_data is not None and len(st.session_state.generated_data) > 0:
+    st.session_state.current_view = "results"
+    logger.info(f"Switched to results view")
+elif st.session_state.original_data is None:
+    st.session_state.current_view = "upload"
 
-tab1, tab2, tab3, tab4 = st.tabs([
-    "Upload", 
-    "Results", 
-    "Visualization", 
-    "Documentation"
-])
+# Navigation buttons at the top
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    if st.button("📤 Upload", use_container_width=True, key="nav_upload"):
+        st.session_state.current_view = "upload"
+        logger.info("Switched to upload view")
+        st.rerun()
+with col2:
+    if st.button("📊 Results", use_container_width=True, key="nav_results"):
+        st.session_state.current_view = "results"
+        logger.info("Switched to results view")
+        st.rerun()
+with col3:
+    if st.button("📈 Visualization", use_container_width=True, key="nav_viz"):
+        st.session_state.current_view = "visualization"
+        logger.info("Switched to visualization view")
+        st.rerun()
+with col4:
+    if st.button("📚 Documentation", use_container_width=True, key="nav_docs"):
+        st.session_state.current_view = "documentation"
+        logger.info("Switched to documentation view")
+        st.rerun()
 
-with tab1:
+st.divider()
+
+# UPLOAD VIEW
+if st.session_state.current_view == "upload":
     if st.session_state.original_data is None:
         st.markdown(
             """
@@ -1147,7 +1164,8 @@ with tab1:
         with st.expander("Original Data Preview", expanded=True):
             st.dataframe(st.session_state.original_data.head(10), use_container_width=True)
 
-with tab2:
+# RESULTS VIEW
+elif st.session_state.current_view == "results":
     if st.session_state.is_generating:
         st.markdown("""
         <div class="card animate-fade-in">
@@ -1188,8 +1206,8 @@ with tab2:
             
             if st.session_state.generated_data is not None and len(st.session_state.generated_data) > 0:
                 logger.info(f"✅ Successfully generated synthetic data: {st.session_state.generated_data.shape}")
-                # Set flag to show results tab on next rerun
-                st.session_state.show_results = True
+                # Switch to results view
+                st.session_state.current_view = "results"
             else:
                 logger.error("❌ Generated data is empty or None")
             
@@ -1284,7 +1302,8 @@ with tab2:
         </div>
         """, unsafe_allow_html=True)
 
-with tab3:
+# VISUALIZATION VIEW
+elif st.session_state.current_view == "visualization":
     if st.session_state.original_data is not None and st.session_state.generated_data is not None:
         st.markdown("""
         <div class="card">
@@ -1573,8 +1592,9 @@ with tab3:
             </ul>
         </div>
     """, unsafe_allow_html=True)
-    
-with tab4:
+
+# DOCUMENTATION VIEW
+elif st.session_state.current_view == "documentation":
     st.markdown("""
     <div class="doc-container">
         <h1 style="display: flex; align-items: center;"><i class="fas fa-database icon-info"></i>&nbsp;SynthGen AI Documentation</h1>
