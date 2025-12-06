@@ -1010,6 +1010,8 @@ with st.sidebar:
             if st.button("Generate Data", use_container_width=True):
                 logger.info(f"Generate button clicked: requesting {num_rows} synthetic rows")
                 st.session_state.is_generating = True
+                st.session_state.current_view = "results"  # Switch to results view
+                st.rerun()  # Rerun to show the generation UI
             st.markdown('</div>', unsafe_allow_html=True)
             
             # Reset button - outside the expander
@@ -1048,35 +1050,68 @@ with st.sidebar:
 if 'current_view' not in st.session_state:
     st.session_state.current_view = "upload"  # upload, results, visualization, documentation
 
-# Dynamic view switching
-if st.session_state.generated_data is not None and len(st.session_state.generated_data) > 0:
-    st.session_state.current_view = "results"
-    logger.info(f"Switched to results view")
-elif st.session_state.original_data is None:
+# Dynamic view switching - only if user hasn't manually navigated
+if st.session_state.original_data is None and st.session_state.current_view != "documentation":
     st.session_state.current_view = "upload"
 
-# Navigation buttons at the top
+# Navigation buttons at the top with proper highlighting
 col1, col2, col3, col4 = st.columns(4)
+
+# Upload Button
 with col1:
-    if st.button("📤 Upload", use_container_width=True, key="nav_upload"):
-        st.session_state.current_view = "upload"
-        logger.info("Switched to upload view")
-        st.rerun()
+    if st.session_state.current_view == "upload":
+        st.markdown("""
+        <div style="background-color: #00bf8f; color: white; padding: 8px 12px; border-radius: 6px; text-align: center; font-weight: 600; font-size: 14px; cursor: pointer;">
+            Upload
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        if st.button("Upload", use_container_width=True, key="nav_upload"):
+            st.session_state.current_view = "upload"
+            logger.info("Switched to upload view")
+            st.rerun()
+    
+# Results Button
 with col2:
-    if st.button("📊 Results", use_container_width=True, key="nav_results"):
-        st.session_state.current_view = "results"
-        logger.info("Switched to results view")
-        st.rerun()
+    if st.session_state.current_view == "results":
+        st.markdown("""
+        <div style="background-color: #00bf8f; color: white; padding: 8px 12px; border-radius: 6px; text-align: center; font-weight: 600; font-size: 14px; cursor: pointer;">
+            Results
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        if st.button("Results", use_container_width=True, key="nav_results"):
+            st.session_state.current_view = "results"
+            logger.info("Switched to results view")
+            st.rerun()
+
+# Visualization Button
 with col3:
-    if st.button("📈 Visualization", use_container_width=True, key="nav_viz"):
-        st.session_state.current_view = "visualization"
-        logger.info("Switched to visualization view")
-        st.rerun()
+    if st.session_state.current_view == "visualization":
+        st.markdown("""
+        <div style="background-color: #00bf8f; color: white; padding: 8px 12px; border-radius: 6px; text-align: center; font-weight: 600; font-size: 14px; cursor: pointer;">
+            Visualization
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        if st.button("Visualization", use_container_width=True, key="nav_viz"):
+            st.session_state.current_view = "visualization"
+            logger.info("Switched to visualization view")
+            st.rerun()
+
+# Docs Button
 with col4:
-    if st.button("📚 Documentation", use_container_width=True, key="nav_docs"):
-        st.session_state.current_view = "documentation"
-        logger.info("Switched to documentation view")
-        st.rerun()
+    if st.session_state.current_view == "documentation":
+        st.markdown("""
+        <div style="background-color: #00bf8f; color: white; padding: 8px 12px; border-radius: 6px; text-align: center; font-weight: 600; font-size: 14px; cursor: pointer;">
+            Docs
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        if st.button("Docs", use_container_width=True, key="nav_docs"):
+            st.session_state.current_view = "documentation"
+            logger.info("Switched to documentation view")
+            st.rerun()
 
 st.divider()
 
