@@ -1,29 +1,51 @@
+# ============================================================================
+# SYNTHGEN AI - Synthetic Data Generation Tool
+# ============================================================================
+# A Streamlit web application for generating high-quality synthetic data
+# using AI (LLMs). The application preserves statistical properties while
+# ensuring data privacy.
+# ============================================================================
+
+# === IMPORTS ===
+# Core Streamlit framework for building web UI
 import streamlit as st
+
+# Data manipulation and analysis
 import pandas as pd
 import asyncio
 import time
+
+# Data visualization with Plotly
 import plotly.express as px
+
+# AI/LLM integration - Pydantic AI framework
 from pydantic_ai import Agent
 from pydantic_ai.models.groq import GroqModel
 from pydantic_ai.providers.groq import GroqProvider
+
+# File I/O utilities
 from io import StringIO, BytesIO
+
+# Environment and system utilities
 import os
 from dotenv import load_dotenv
 import logging
 import traceback
 
-# Configure logging
+# === CONFIGURATION & SETUP ===
+
+# Configure logging for debugging and monitoring
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# Load environment variables from a local .env file for local/dev runs
+# Load environment variables from .env file (for local development and deployment)
 load_dotenv()
 logger.info("Environment variables loaded successfully")
 
-# Set page configuration
+# Configure Streamlit page settings
 st.set_page_config(
     page_title="SynthGen AI",
     page_icon="🧬",
@@ -31,7 +53,8 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for a modern look
+# === STYLING & THEMING ===
+# Apply custom CSS for modern UI design with gradient backgrounds and responsive layouts
 st.markdown("""
 <style>
     /* Modern Color Palette */
@@ -858,18 +881,22 @@ st.markdown("""
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 """, unsafe_allow_html=True)
 
-# Initialize AI agent
+# === AI MODEL INITIALIZATION ===
+# Initialize Groq API key from environment variables
 groq_api_key = os.getenv("GROQ_API_KEY")
 if not groq_api_key:
     st.error("GROQ_API_KEY is not set. Add it to your .env file or deployment secrets.")
     st.stop()
 
+# Initialize Groq model (Llama 3.3 70B) for synthetic data generation
 model = GroqModel(
     'llama-3.3-70b-versatile', provider=GroqProvider(api_key=groq_api_key)
 )
+# Create AI agent instance for handling data generation tasks
 agent = Agent(model)
 
-# Session state initialization
+# === SESSION STATE MANAGEMENT ===
+# Initialize Streamlit session state variables to persist data across reruns
 if 'generated_data' not in st.session_state:
     st.session_state.generated_data = None
 if 'original_data' not in st.session_state:
@@ -881,12 +908,25 @@ if 'generation_time' not in st.session_state:
 if 'is_generating' not in st.session_state:
     st.session_state.is_generating = False
 
+# === CORE FUNCTION: SYNTHETIC DATA GENERATION ===
+# Main async function that generates synthetic data using AI
+# Takes original dataset and desired row count, returns generated synthetic data
 async def generate_synthetic_data(df: pd.DataFrame, num_rows: int) -> pd.DataFrame:
+    """Generate synthetic data that preserves statistical properties of original data.
+    
+    Args:
+        df: Original pandas DataFrame to analyze
+        num_rows: Number of synthetic rows to generate
+        
+    Returns:
+        DataFrame containing generated synthetic data
+    """
     start_time = time.time()
     logger.info(f"Starting synthetic data generation: {num_rows} rows from {df.shape[0]} original rows")
     
     try:
-        # Create detailed column info
+        # === STEP 1: ANALYZE ORIGINAL DATA ===
+        # Extract column statistics and example values for AI to understand data patterns
         column_info = []
         for col in df.columns:
             example_values = df[col].dropna().sample(min(3, len(df[col].dropna()))).tolist()
@@ -899,6 +939,8 @@ async def generate_synthetic_data(df: pd.DataFrame, num_rows: int) -> pd.DataFra
         column_details = "\n".join(column_info)
         logger.info(f"Column analysis completed: {len(column_info)} columns analyzed")
         
+        # === STEP 2: CREATE GENERATION PROMPT ===
+        # Construct detailed prompt for AI to generate synthetic data matching original patterns
         prompt = (
             f"Generate {num_rows} rows of synthetic data that closely resembles this dataset. "
             f"Maintain the same columns, data types, value distributions, and relationships between fields.\n\n"
@@ -907,39 +949,45 @@ async def generate_synthetic_data(df: pd.DataFrame, num_rows: int) -> pd.DataFra
         )
         
         logger.info("Sending prompt to AI agent for data generation...")
+        # === STEP 3: SEND PROMPT TO AI ===
+        # Call the AI agent to generate synthetic data based on our analysis
         response = await agent.run(prompt)
         logger.info("Received response from AI agent")
         
         try:
-            # Extract the actual response content from AgentRunResult
-            # The output attribute contains the generated text
+            # === STEP 4: PARSE AI RESPONSE ===
+            # Extract CSV content from AgentRunResult object
+            # Extract text output from response object
             logger.info(f"Response object type: {type(response)}")
             
-            # Use the output attribute which contains the actual text response
             csv_data = response.output.strip()
             logger.info(f"Using response.output attribute - Response length: {len(csv_data)} characters")
             logger.info(f"First 200 chars of response: {csv_data[:200]}")
             
-            # Remove any markdown code blocks if present
+            # Clean up markdown formatting if AI wrapped response in code blocks
             if csv_data.startswith("```") and csv_data.endswith("```"):
                 logger.info("Removing markdown code blocks from response")
                 csv_data = csv_data[3:-3].strip()
             
+            # === STEP 5: PARSE CSV DATA ===
+            # Convert AI-generated CSV text into pandas DataFrame
             df_synthetic = pd.read_csv(StringIO(csv_data))
             logger.info(f"Successfully parsed CSV data: {df_synthetic.shape[0]} rows, {df_synthetic.shape[1]} columns")
             
-            # Ensure data types match original dataset
+            # === STEP 6: ALIGN DATA TYPES ===
+            # Ensure synthetic data matches original dataset's data types
             for col in df.columns:
                 if col in df_synthetic.columns:
                     df_synthetic[col] = df_synthetic[col].astype(df[col].dtype, errors='ignore')
             logger.info("Data types aligned with original dataset")
             
-            # Calculate generation time
+            # === STEP 7: CALCULATE METRICS ===
+            # Record generation time and data statistics
             generation_time = round(time.time() - start_time, 2)
             st.session_state.generation_time = generation_time
             logger.info(f"Data generation completed in {generation_time} seconds")
             
-            # Calculate basic statistics
+            # Store data statistics for display in UI
             st.session_state.data_stats = {
                 'num_rows': len(df_synthetic),
                 'num_columns': len(df_synthetic.columns),
@@ -966,15 +1014,18 @@ async def generate_synthetic_data(df: pd.DataFrame, num_rows: int) -> pd.DataFra
         st.error(f"❌ Critical error during data generation: {str(e)}")
         return pd.DataFrame()
 
-# Main layout
+# === MAIN UI LAYOUT ===
+# Display application header and branding
 st.markdown('<h1 class="main-header">SynthGen AI</h1>', unsafe_allow_html=True)
 st.markdown('<p class="sub-header">Generate high-quality synthetic data with AI</p>', unsafe_allow_html=True)
 
-# Sidebar
+# === SIDEBAR CONFIGURATION ===
+# Sidebar contains file upload and generation controls
 with st.sidebar:
     st.markdown("## SynthGen Controls")
    
-    
+    # === FILE UPLOAD SECTION ===
+    # Allow users to upload CSV file for synthetic data generation
     uploaded_file = st.file_uploader(
         "Upload your CSV dataset", 
         type=["csv"],
@@ -983,16 +1034,19 @@ with st.sidebar:
     
     if uploaded_file:
         try:
+            # Parse and validate uploaded CSV file
             logger.info(f"File uploaded: {uploaded_file.name}")
             df = pd.read_csv(uploaded_file)
             logger.info(f"File loaded successfully: {df.shape[0]} rows, {df.shape[1]} columns")
             logger.info(f"Columns: {list(df.columns)}")
             logger.info(f"Data types: {df.dtypes.to_dict()}")
             
+            # Store original data in session state
             st.session_state.original_data = df
             st.success(f"✅ Loaded {df.shape[0]} rows and {df.shape[1]} columns")
             
-            # Options for generation
+            # === GENERATION CONFIGURATION ===
+            # Allow users to specify generation parameters
             st.markdown("### Generation Options")
             num_rows = st.number_input(
                 "Number of synthetic rows to generate",
@@ -1002,7 +1056,8 @@ with st.sidebar:
                 help="Specify how many rows of synthetic data to generate"
             )
             
-            # Generate button - outside the expander
+            # === ACTION BUTTONS ===
+            # Generate button triggers synthetic data generation
             st.markdown('<div class="success-button">', unsafe_allow_html=True)
             if st.button("Generate Data", use_container_width=True):
                 logger.info(f"Generate button clicked: requesting {num_rows} synthetic rows")
@@ -1011,7 +1066,7 @@ with st.sidebar:
                 st.rerun()  # Rerun to show the generation UI
             st.markdown('</div>', unsafe_allow_html=True)
             
-            # Reset button - outside the expander
+            # Reset button clears session and allows new dataset upload
             st.markdown('<div class="info-button">', unsafe_allow_html=True)
             if st.button("Reset", use_container_width=True):
                 logger.info("Reset button clicked - clearing all session data")
@@ -1043,15 +1098,17 @@ with st.sidebar:
     """)
     st.markdown("Version 1.0.0")
 
-# Initialize session state for view navigation
+# === VIEW NAVIGATION STATE ===
+# Initialize and manage which view (tab) is currently displayed
 if 'current_view' not in st.session_state:
-    st.session_state.current_view = "upload"  # upload, results, visualization, documentation
+    st.session_state.current_view = "upload"  # Options: upload, results, visualization, documentation
 
-# Dynamic view switching - only if user hasn't manually navigated
+# Automatically return to upload view if no data is available
 if st.session_state.original_data is None and st.session_state.current_view != "documentation":
     st.session_state.current_view = "upload"
 
-# Navigation buttons at the top with proper highlighting
+# === MAIN NAVIGATION ===
+# Create navigation buttons for different views
 col1, col2, col3, col4 = st.columns(4)
 
 # Upload Button
@@ -1112,7 +1169,8 @@ with col4:
 
 st.divider()
 
-# UPLOAD VIEW
+# === VIEW 1: UPLOAD VIEW ===
+# This view handles file upload and displays dataset preview
 if st.session_state.current_view == "upload":
     if st.session_state.original_data is None:
         st.markdown(
@@ -1196,7 +1254,8 @@ if st.session_state.current_view == "upload":
         with st.expander("Original Data Preview", expanded=True):
             st.dataframe(st.session_state.original_data.head(10), use_container_width=True)
 
-# RESULTS VIEW
+# === VIEW 2: RESULTS VIEW ===
+# Displays synthetic data generation progress and results
 elif st.session_state.current_view == "results":
     if st.session_state.is_generating:
         st.markdown("""
@@ -1209,9 +1268,11 @@ elif st.session_state.current_view == "results":
         progress_bar = st.progress(0)
         status_container = st.empty()
         
-        # Run the generation
+        # Define and execute the generation workflow
         async def run_generation():
+            """Manage the synthetic data generation workflow with progress updates."""
             logger.info("Starting generation workflow...")
+            # Define generation stages with progress indicators
             stages = [
                 {"progress": 25, "message": "<i class='fas fa-database'></i> Analyzing dataset structure..."},
                 {"progress": 50, "message": "<i class='fas fa-sitemap'></i> Identifying patterns and relationships..."},
@@ -1219,6 +1280,7 @@ elif st.session_state.current_view == "results":
                 {"progress": 90, "message": "<i class='fas fa-check-circle'></i> Finalizing and validating output..."}
             ]
             
+            # Update UI with progress through each stage
             for i, stage in enumerate(stages):
                 logger.info(f"Generation stage {i+1}/{len(stages)}: {stage['message']}")
                 progress_bar.progress(stage["progress"])
@@ -1229,7 +1291,7 @@ elif st.session_state.current_view == "results":
                 """, unsafe_allow_html=True)
                 await asyncio.sleep(1)
             
-            # Generate data
+            # === EXECUTE DATA GENERATION ===
             logger.info(f"Calling generate_synthetic_data function...")
             st.session_state.generated_data = await generate_synthetic_data(
                 st.session_state.original_data, 
@@ -1293,11 +1355,13 @@ elif st.session_state.current_view == "results":
         
         st.dataframe(st.session_state.generated_data, use_container_width=True)
         
-        # Download options
+        # === DOWNLOAD OPTIONS ===
+        # Provide CSV and Excel download buttons for generated data
         st.markdown("<h3><i class='fas fa-download icon-success'></i> Download Options</h3>", unsafe_allow_html=True)
         col1, col2 = st.columns(2)
         with col1:
             try:
+                # Generate CSV format
                 csv_data = st.session_state.generated_data.to_csv(index=False)
                 logger.info(f"CSV export prepared: {len(csv_data)} bytes")
                 st.download_button(
@@ -1313,6 +1377,7 @@ elif st.session_state.current_view == "results":
         
         with col2:
             try:
+                # Generate Excel format
                 buffer = BytesIO()
                 with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
                     st.session_state.generated_data.to_excel(writer, index=False)
@@ -1334,7 +1399,8 @@ elif st.session_state.current_view == "results":
         </div>
         """, unsafe_allow_html=True)
 
-# VISUALIZATION VIEW
+# === VIEW 3: VISUALIZATION VIEW ===
+# Provides interactive visualizations comparing original vs synthetic data
 elif st.session_state.current_view == "visualization":
     if st.session_state.original_data is not None and st.session_state.generated_data is not None:
         st.markdown("""
@@ -1345,11 +1411,13 @@ elif st.session_state.current_view == "visualization":
         </div>
         """, unsafe_allow_html=True)
         
-        # Column selector for visualization
+        # === VISUALIZATION CONFIGURATION ===
+        # Extract numeric columns for visualization options
         numeric_columns = [col for col in st.session_state.original_data.columns 
                          if pd.api.types.is_numeric_dtype(st.session_state.original_data[col])]
         
         if numeric_columns:
+            # Numeric columns found - allow visualizations
             logger.info(f"Found {len(numeric_columns)} numeric columns for visualization: {numeric_columns}")
             
             # Add a nicer UI for column selection
@@ -1374,7 +1442,8 @@ elif st.session_state.current_view == "visualization":
             else:
                 logger.info(f"Column '{selected_column}' validated in synthetic data")
                 
-                # Add visualization type selector
+                # === SELECT VISUALIZATION TYPE ===
+                # Offer different visualization options for data analysis
                 viz_type = st.radio(
                     "Select visualization type",
                     ["Histogram", "Box Plot", "Scatter Plot"],
@@ -1389,6 +1458,8 @@ elif st.session_state.current_view == "visualization":
 
                 """, unsafe_allow_html=True)
                 
+                # === HISTOGRAM VIEW ===
+                # Compare distribution shapes between original and synthetic data
                 if viz_type == "Histogram":
                     try:
                         logger.info(f"Creating histogram visualization for column: {selected_column}")
@@ -1443,13 +1514,15 @@ elif st.session_state.current_view == "visualization":
                         logger.error(traceback.format_exc())
                         st.error(f"❌ Error creating histogram: {str(e)}")
                 
+                # === BOX PLOT VIEW ===
+                # Compare medians, quartiles, and outliers
                 elif viz_type == "Box Plot":
                     try:
                         logger.info(f"Creating box plot visualization for column: {selected_column}")
                         st.markdown("<div class='card'>", unsafe_allow_html=True)
                         st.markdown("#### <i class='fas fa-box icon-warning'></i> Distribution Comparison", unsafe_allow_html=True)
                         
-                        # Create comparison dataframe
+                        # Prepare data for comparison visualization
                         orig_df = st.session_state.original_data[[selected_column]].copy()
                         orig_df['Type'] = 'Original'
                         
@@ -1484,6 +1557,8 @@ elif st.session_state.current_view == "visualization":
                         logger.error(traceback.format_exc())
                         st.error(f"❌ Error creating box plot: {str(e)}")
                 
+                # === SCATTER PLOT VIEW ===
+                # Analyze relationships and correlations between columns
                 else:  # Scatter Plot
                     try:
                         logger.info(f"Creating scatter plot visualization")
@@ -1495,6 +1570,7 @@ elif st.session_state.current_view == "visualization":
                             </div>
                             """, unsafe_allow_html=True)
                             
+                            # Allow user to select second variable for bivariate analysis
                             second_column = st.selectbox(
                                 "Select second column",
                                 [col for col in numeric_columns if col != selected_column],
@@ -1556,7 +1632,8 @@ elif st.session_state.current_view == "visualization":
                         logger.error(traceback.format_exc())
                         st.error(f"❌ Error creating scatter plot: {str(e)}")
                 
-                # Add statistics comparison
+                # === STATISTICAL ANALYSIS ===
+                # Show key statistics comparing original vs synthetic data
                 try:
                     logger.info("Creating statistical analysis section")
                     st.markdown("""
@@ -1566,6 +1643,7 @@ elif st.session_state.current_view == "visualization":
                     </div>
                     """, unsafe_allow_html=True)
                     
+                    # Display summary statistics side by side
                     col1, col2 = st.columns(2)
                     
                     with col1:
@@ -1625,7 +1703,8 @@ elif st.session_state.current_view == "visualization":
         </div>
     """, unsafe_allow_html=True)
 
-# DOCUMENTATION VIEW
+# === VIEW 4: DOCUMENTATION VIEW ===
+# Provides user guide, use cases, and feature documentation
 elif st.session_state.current_view == "documentation":
     st.markdown("""
     <div class="doc-container">
